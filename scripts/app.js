@@ -9,26 +9,26 @@ function renderProducts() {
   products.forEach((product) => {
     productsEl.innerHTML += `
     <div class="item" id="${product.id}">
-    <div class="item-container">
-        <div class="item-img">
-            <img src="${product.images[0]}" alt="${product.name}">
+        <div class="item-container">
+            <div class="item-img">
+                <img src="${product.images[0]}" alt="${product.name}">
+            </div>
+            <div class="desc">
+                <h2>${product.title}</h2>
+                <h3>${product.brand}</h3>
+                <p>
+                    ${product.description}
+                </p>
+            </div>
+            <div class="add-to-cart" >
+              <h2><small>$</small>${product.price}</h2>
+              <div class="btn minus" onClick="handleQuantityChange(${product.id}, -1)">-</div>
+              <div class="product-unit">1</div>
+              <div class="btn plus" onClick="handleQuantityChange(${product.id}, 1)">+</div>
+              <img src="./assets/add-to-cart.png" alt="add to cart" onClick="addToCart(${product.id})">
+            </div>
         </div>
-        <div class="desc">
-            <h2>${product.title}</h2>
-            <h3>${product.brand}</h3>
-            <p>
-            ${product.description}
-            </p>
-        </div>
-        <div class="add-to-cart" >
-          <h2><small>$</small>${product.price}</h2>
-          <div class="btn minus" onClick="handleQuantityChange(${product.id}, -1)">-</div>
-          <div class="product-unit">1</div>
-          <div class="btn plus" onClick="handleQuantityChange(${product.id}, 1)">+</div>
-          <img src="./assets/add-to-cart.png" alt="add to cart" onClick="addToCart(${product.id})">
-        </div>
-    </div>
-</div>
+   </div>
     `;
   });
 }
@@ -92,29 +92,58 @@ function renderSubTotal() {
   subtotalEl.innerHTML = `Grand Total: $${totalPrice.toFixed(2)}`;
 }
 
+function splitCartByManufacturer(cart) {
+  const manufacturers = [];
+  cart.forEach((p) => {
+    const i = manufacturers.findIndex((m) => m[0].brand === p.brand);
+    if (i === -1) {
+      manufacturers.push([p]);
+    } else {
+      manufacturers[i].push(p);
+    }
+  });
+  return manufacturers;
+}
+
 //render cart items
 function renderCartItems() {
-  cartItemsEl.innerHTML = ""; //clear cart element
-  cart.forEach((item) => {
-    cartItemsEl.innerHTML += `
-    <div class="cart-item">
-                    <div class="item-info">
-                        <h4>${item.title}</h4>
-                    </div>
-                    <div class="unit-price">
-                        <small>$</small>${item.price}
-                    </div>
-                    <div class="units">
-                        <div class="btn minus" onclick="changeNumberOfUnits(-1, ${item.id})">-</div>
-                        <div class="number">${item.numberOfUnits}</div>
-                        <div class="btn plus" onclick="changeNumberOfUnits(1, ${item.id})">+</div>
-                    </div>
-                    <div class="btn-delete" onclick="removeItemFromCart(${item.id})">
-                      <img src="./assets/delete.png" alt="delete button">
-                    </div>
-    </div>
-  `;
-  });
+  const manufacturers = splitCartByManufacturer(cart);
+  cartItemsEl.innerHTML = manufacturers
+    .map((m) => {
+      let sum = 0;
+      let html = `<div class="manufacturer">
+        <h3>${m[0].brand}</h3>
+         ${m
+           .map((item) => {
+             sum += item.price;
+             return `
+                  <div class="cart-item">
+                       <div class="item-info">
+                           <h4>${item.title}</h4>
+                       </div>
+                       <div class="unit-price">
+                           <small>$</small>${item.price}
+                       </div>
+                       <div class="units">
+                           <div class="btn minus" onclick="changeNumberOfUnits(-1, ${item.id})">-</div>
+                           <div class="number">${item.numberOfUnits}</div>
+                           <div class="btn plus" onclick="changeNumberOfUnits(1, ${item.id})">+</div>
+                       </div>
+                       <div class="btn-delete" onclick="removeItemFromCart(${item.id})">
+                         <img src="./assets/delete.png" alt="delete button">
+                       </div>
+                 </div>
+       `;
+           })
+           .join("")}
+      `;
+      html += `
+      <h4>Total: $${sum}</h4>
+        </div>
+        `;
+      return html;
+    })
+    .join("");
 }
 
 //remove item from cart

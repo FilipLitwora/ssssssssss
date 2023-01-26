@@ -128,7 +128,6 @@ body {
 .cart .cart-container .cart-items .cart-item {
   display: flex;
   justify-content: space-around;
-  padding: 10px 0;
 }
 .cart .cart-container .cart-items .cart-item div {
   display: flex;
@@ -172,3 +171,19 @@ body {
   padding: 15px 0;
   font-size: 1.3rem;
 }/*# sourceMappingURL=styles.css.map */
+
+.manufacturer h3,
+.manufacturer h4{
+text-align: center;
+}
+
+.manufacturer h4{
+    margin-bottom: 8px;
+}
+
+.manufacturer{
+  background-color: #af99ff;
+}
+.cart-item{
+    background: white;
+}
