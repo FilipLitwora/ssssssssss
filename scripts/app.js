@@ -65,6 +65,7 @@ function addToCart(id) {
     cart.push({
       ...item,
       numberOfUnits: unitsToBeAdded,
+      isChecked: true,
     });
   }
 
@@ -82,12 +83,11 @@ function updateCart() {
 
 //calculate and render subtotal
 function renderSubTotal() {
-  let totalPrice = 0,
-    totalItems = 0;
-
+  let totalPrice = 0;
   cart.forEach((item) => {
-    totalPrice += item.price * item.numberOfUnits;
-    totalItems += item.numberOfUnits;
+    if (item.isChecked) {
+      totalPrice += item.price * item.numberOfUnits;
+    }
   });
   subtotalEl.innerHTML = `Grand Total: $${totalPrice.toFixed(2)}`;
 }
@@ -105,31 +105,78 @@ function splitCartByManufacturer(cart) {
   return manufacturers;
 }
 
+function handleProductCheckbox(id) {
+  const i = cart.findIndex((p) => p.id === id);
+  if (i != -1) {
+    cart[i] = { ...cart[i], isChecked: !cart[i].isChecked };
+  }
+
+  updateCart();
+}
+
+function handleManufacturerCheckbox(value, brand) {
+  cart.forEach((p) => {
+    if (p.brand === brand) {
+      p.isChecked = !value;
+    }
+  });
+
+  updateCart();
+}
+
 //render cart items
 function renderCartItems() {
   const manufacturers = splitCartByManufacturer(cart);
   cartItemsEl.innerHTML = manufacturers
     .map((m) => {
       let sum = 0;
+      const brand = m[0].brand;
+      const value = m.some((p) => p.isChecked);
+      const manufacturerCheckbox = `
+          <input onChange="handleManufacturerCheckbox(${value},'${brand}')" type="checkbox" ${
+        value ? "checked" : ""
+      }
+        `;
+
       let html = `<div class="manufacturer">
-        <h3>${m[0].brand}</h3>
+      <div class="manufacturer-heading">
+          ${manufacturerCheckbox}
+          <h3>${brand}</h3>
+      </div>
          ${m
            .map((item) => {
-             sum += item.price;
+             if (item.isChecked) {
+               sum += item.price * item.numberOfUnits;
+             }
              return `
                   <div class="cart-item">
                        <div class="item-info">
+                           ${
+                             m.length > 1
+                               ? `<input onChange="handleProductCheckbox(${
+                                   item.id
+                                 })" type="checkbox" ${
+                                   item.isChecked ? "checked" : ""
+                                 }>`
+                               : ""
+                           }
                            <h4>${item.title}</h4>
                        </div>
                        <div class="unit-price">
                            <small>$</small>${item.price}
                        </div>
                        <div class="units">
-                           <div class="btn minus" onclick="changeNumberOfUnits(-1, ${item.id})">-</div>
+                           <div class="btn minus" onclick="changeNumberOfUnits(-1, ${
+                             item.id
+                           })">-</div>
                            <div class="number">${item.numberOfUnits}</div>
-                           <div class="btn plus" onclick="changeNumberOfUnits(1, ${item.id})">+</div>
+                           <div class="btn plus" onclick="changeNumberOfUnits(1, ${
+                             item.id
+                           })">+</div>
                        </div>
-                       <div class="btn-delete" onclick="removeItemFromCart(${item.id})">
+                       <div class="btn-delete" onclick="removeItemFromCart(${
+                         item.id
+                       })">
                          <img src="./assets/delete.png" alt="delete button">
                        </div>
                  </div>
